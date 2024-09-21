@@ -1,0 +1,56 @@
+services:
+  proxy:
+    image: traefik
+    container_name: traefik
+    restart: unless-stopped
+    networks:
+      - proxy
+    command:
+      # - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.filename=/config.yml"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.letsencrypt.acme.email=${EMAIL}"
+      # - "--certificatesresolvers.letsencrypt.acme.dnschallenge.disablePropagationCheck=true"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      # HTTP
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      # HTTPS
+      - "--entrypoints.websecure.http.tls=true"
+      - "--entrypoints.websecure.http.tls.certResolver=letsencrypt"
+      - "--entrypoints.websecure.http.tls.domains[0].main=${DOMAIN}"
+      - "--entrypoints.websecure.http.tls.domains[0].sans=*.${DOMAIN}"
+      - "--entrypoints.websecure.http.tls.domains[1].main=${DOMAIN1}"
+      - "--entrypoints.websecure.http.tls.domains[1].sans=*.${DOMAIN1}"
+      - "--entrypoints.websecure.http.tls.domains[2].main=${DOMAIN2}"
+      - "--entrypoints.websecure.http.tls.domains[2].sans=*.${DOMAIN2}"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+      - "./config.yml:/config.yml:ro"
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN1}`)'
+      - 'traefik.http.services.traefik.loadbalancer.server.port=8080'
+      - "homepage.group=Infrastructure"
+      - "homepage.name=Traefik"
+      - "homepage.icon=traefik.svg"
+      - "homepage.href=https://traefik.${DOMAIN1}"
+      - "homepage.widget.type=traefik"
+      - "homepage.widget.url=https://traefik.${DOMAIN1}"
+    ports:
+      - "443:443"
+      - "80:80"
+    environment:
+      CF_DNS_API_TOKEN: "${CF_DNS_API_TOKEN}"
+
+networks:
+  proxy:
+    external: true

@@ -1,0 +1,25 @@
+services:
+  archisteamfarm:
+    image: justarchi/archisteamfarm:latest
+    container_name: archisteamfarm
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./config:/app/config
+      - ./logs:/app/logs
+      - ./plugins:/app/plugins
+    networks:
+      - proxy
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.archisteamfarm.rule=Host(`asf.${DOMAIN}`)"
+      - "traefik.http.routers.archisteamfarm.service=archisteamfarm"
+      - "traefik.http.services.archisteamfarm.loadbalancer.server.port=1242"
+      - "homepage.group=Services"
+      - "homepage.name=Archisteamfarm"
+      - "homepage.icon=archisteamfarm.png"
+      - "homepage.href=https://asf.${DOMAIN}"
+
+networks:
+  proxy:
+    external: true
