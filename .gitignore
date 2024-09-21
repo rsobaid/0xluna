@@ -1,0 +1,6 @@
+*~
+.Trash-1000
+..bfg-report
+.DS_Store
+docker/*
+!docker/*/docker-compose.yml
