@@ -2,6 +2,7 @@ services:
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
+    restart: unless-stopped
     networks:
       - proxy
     volumes:
@@ -10,7 +11,6 @@ services:
       - ./config:/app/config
       - ./public/images:/app/public/images
       - ./public/icons:/app/public/icons
-    restart: unless-stopped
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.homepage.rule=Host(`home.${DOMAIN}`)"

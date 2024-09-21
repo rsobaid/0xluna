@@ -2,6 +2,7 @@ services:
   wallos:
     container_name: wallos
     image: bellamy/wallos:latest
+    restart: unless-stopped
     networks:
       - proxy
     volumes:
@@ -9,7 +10,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./db:/var/www/html/db
       - ./logos:/var/www/html/images/uploads/logos
-    restart: unless-stopped
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.wallos.rule=Host(`wallos.${DOMAIN}`)"

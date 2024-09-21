@@ -2,14 +2,14 @@ services:
   archisteamfarm:
     image: justarchi/archisteamfarm:latest
     container_name: archisteamfarm
+    restart: always
+    networks:
+      - proxy
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./config:/app/config
       - ./logs:/app/logs
       - ./plugins:/app/plugins
-    networks:
-      - proxy
-    restart: always
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.archisteamfarm.rule=Host(`asf.${DOMAIN}`)"
