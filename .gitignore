@@ -4,3 +4,5 @@
 .DS_Store
 docker/*/*
 !docker/*/docker-compose.yml
+script/*
+!script/*.sh
