@@ -1,39 +1,21 @@
 #!/bin/bash
-set -e  # Exit on any command failure
+set -e
 
 source .env
 
-# Path to where the Export should be saved to
-PATHCONFIG="/home/ubuntu/backup/opnsense"
-
-# Variable for unique naming for daily export
 DATE=$(date +%Y%m%d%H%M%S)
+BACKUP_FILE="${opnsense_backup}/config-${HOST}-${DATE}.xml"
 
-# Define the backup file path
-BACKUP_FILE="${PATHCONFIG}/config-${HOST}-${DATE}.xml"
+notify() {
+  local status="$1"
+  local message="$2"
+  curl -X POST "$TG_URL" -d chat_id="$TG_ID" -d text="$message" -d parse_mode="Markdown"
+}
 
-# Make the API request for config as XML and capture the error message
-if ! ERROR_MESSAGE=$(curl -u "${KEY}:${SECRET}" "https://${HOST}/api/core/backup/download/this" --create-dirs -o "$BACKUP_FILE" 2>&1); then
-  # If curl fails, send a failure notification
-  FULL_MESSAGE="❌ <b>OPNSense Backup</b>
-<b>Status:</b> Failed
-
-<code>$ERROR_MESSAGE</code>
-
-$(date)"
-
-  # Send the message to Telegram
-  curl -X POST $TG_URL -d chat_id=$TG_ID -d text="$FULL_MESSAGE" -d parse_mode="HTML"
+if ! ERROR=$(curl -u "${KEY}:${SECRET}" "https://${HOST}/api/core/backup/download/this" --create-dirs -o "$BACKUP_FILE" 2>&1); then
+  notify "Failed" "$(printf "❌ *OPNSense Backup*  \n*Status:* Failed  \n\n\`%s\`  \n\n%s" "$ERROR" "$(date)")"
   exit 1
 fi
 
-# Send a notification to Telegram based on the backup status
-FULL_MESSAGE="✅ <b>OPNSense Backup</b>
-<b>Status:</b> Success
-$(date)"
-
-# Send the message to Telegram
-curl -X POST $TG_URL -d chat_id=$TG_ID -d text="$FULL_MESSAGE" -d parse_mode="HTML"
-
-# Check the backup destination for backups older than 35 days
-find "${PATHCONFIG}" -type f -name "config-${HOST}-*.xml" -mtime +35 -delete
+notify "Success" "$(printf "✅ *OPNSense Backup*  \n*Status:* Success  \n%s" "$(date)")"
+find "${opnsense_backup}" -type f -name "config-${HOST}-*.xml" -mtime +35 -delete
