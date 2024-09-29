@@ -1,7 +1,5 @@
 #!/bin/bash
-set -e
-
-source .env
+source $HOME/.env
 
 mkdir -p "$log_directory"
 
@@ -60,7 +58,7 @@ curl -s -X POST "$TG_URL" -d "chat_id=$TG_ID" -d "text=$FULL_MESSAGE" -d "parse_
 log_with_timestamp "Notification sent to Telegram: Backup $backup_status." ${backup_status:+"success"} || log_with_timestamp "Notification sent to Telegram: Backup $backup_status." "error"
 
 log_with_timestamp "Deleting files older than 35 days from '$docker_backup'..." "info"
-find "$docker_backup" -type f -mtime +35 -exec rm -rf {} \; >> "$log_file" 2>&1
+find "$docker_backup" -type f -mtime +30 -exec rm -rf {} \; >> "$log_file" 2>&1
 
 log_with_timestamp "Files older than 35 days in '$docker_backup' have been deleted." "success"
 log_with_timestamp "Backup completed." "success"
